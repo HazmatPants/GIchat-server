@@ -32,7 +32,7 @@ pip install -r requirements.txt
 4. Run the server:
 
 ```sh
-python server.py
+python3 server.py
 ```
 
 # Usage
