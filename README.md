@@ -5,9 +5,7 @@ GIChat is a lightweight, easy to set up WebSocket-based chat server written in P
 # Features
 
 - WebSocket-based for real-time communication
-
 - Lightweight and fast with minimal dependencies
-
 - Easy setup, install and run with just a few commands
 
 # Installation
@@ -34,7 +32,6 @@ python server.py
 # Usage
 
 - Connect to the server using the GIchat client
-
 - Default WebSocket URL: ws://localhost:8765
 
 # Configuration
@@ -56,3 +53,12 @@ Modify `config.json` to change settings like the port, IP, or logging preference
 # License
 
 [MIT License](https://mit-license.org/)
+
+# Notes
+
+- Ephemeral Messages: Messages are not saved, neither on the client nor the server.
+
+# Commands
+
+- /who -- Returns all connected clients' usernames.
+- /srv.info -- Returns server information, such as the version and uptime.
