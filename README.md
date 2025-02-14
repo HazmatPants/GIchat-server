@@ -15,7 +15,7 @@ GIChat is a lightweight, easy to set up WebSocket-based chat server written in P
 1. Clone the repository:
 
 ```sh
-git clone https://github.com/HazmatPants/GIchat.git
+git clone https://github.com/HazmatPants/GIchat-server.git
 cd GIchat
 ```
 
