@@ -20,7 +20,7 @@ sudo apt install python3
 
 ```sh
 git clone https://github.com/HazmatPants/GIchat-server.git
-cd GIchat
+cd GIchat-server
 ```
 
 3. Install dependencies:
