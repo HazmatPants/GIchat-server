@@ -74,7 +74,7 @@ async def echo(websocket):
                 else:
                     for client in connected_clients:
                         if client[1] != websocket:
-                            if SRV_CONFIG["block_bad_words"]:
+                            if SRV_CONFIG["blacklist"]:
                                 message_data["message"] = filter_message(message_data["message"])
                             await client[1].send(json.dumps(message_data))
                     print(f"Sent data to all: {message_data}")
