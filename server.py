@@ -3,14 +3,25 @@ import websockets
 import time
 import json
 
+try:
+    SRV_CONFIG = json.loads(open("config.json", "r").read())
+    print("loaded config")
+except json.JSONDecodeError:
+    print("Config is not valid JSON, please check for any mistakes in config.json")
+    exit()
+
 def load_blacklist(file_path):
     with open(file_path, "r") as f:
-        return [line.strip() for line in f.readlines()]
+        return [line.strip().lower() for line in f.readlines()]
 
-BLACKLIST = load_blacklist("blacklist.txt")
+if SRV_CONFIG["blacklist"]:
+    BLACKLIST = load_blacklist("blacklist.txt")
+    print(f"loaded {len(BLACKLIST)} words from blacklist")
+else:
+    print("blacklist is disabled")
 
-SRV_CONFIG = json.loads(open("config.json", "r").read())
-SRV_VERSION = "1.3"
+SRV_NAME = SRV_CONFIG["name"]
+SRV_VERSION = "1.4"
 SRV_STARTTIME = time.time()
 
 host = SRV_CONFIG["host"]
@@ -18,14 +29,24 @@ port = SRV_CONFIG["port"]
 
 connected_clients = set()
 
+def server_info():
+    data = {
+        "name": SRV_CONFIG["name"],
+        "version": SRV_VERSION
+    }
+    return data
+
 def filter_message(message):
     for word in BLACKLIST:
-        message = message.replace(word, "****")
-        return message
+        message = message.lower().replace(word, "****")
+    return message
 
 async def echo(websocket):
     username = await websocket.recv()
-    connected_clients.add((username, websocket))
+    connected_clients.add((username, websocket)) # Client Connected
+
+    await websocket.send(json.dumps(server_info()))
+    print("sent server info to new client")
 
     for client in connected_clients:
         if client[1] != websocket:
@@ -36,6 +57,7 @@ async def echo(websocket):
                 }
             json_data = json.dumps(data)
             await client[1].send(json_data)
+
     print(f"Client connected from {websocket.remote_address}")
 
     try:
@@ -45,7 +67,7 @@ async def echo(websocket):
                 username = message_data.get("username", "Unknown")
                 user_message = message_data.get("message", "")
 
-                print(f"Received: {message.strip()} at {time.time():.4f}")
+                print(f"Received: {message_data["message"].strip()} from {message_data["username"]}")
                 if user_message.startswith("/"):
                     if user_message.strip() == "/who":
                         online_users = [client[0] for client in connected_clients]
