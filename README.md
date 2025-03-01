@@ -39,11 +39,11 @@ python3 server.py
 
 - Connect to the server using the [GIchat client](https://github.com/HazmatPants/GIchat-client)
 - Default WebSocket URL: ws://localhost:8765
-- You can also connect to the official GIchat server at `ws://86.3.132.254`, port `8765`.
+- You can also connect to the official GIchat server at `86.3.132.254`, port `8765`.
 
 # Configuration
 
-Modify `config.json` to change settings like the port, IP, or logging preferences.
+Modify `config.json` to change settings like the port and IP.
 
 # Contributing
 
