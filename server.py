@@ -24,6 +24,8 @@ SRV_NAME = SRV_CONFIG["name"]
 SRV_VERSION = "1.4"
 SRV_STARTTIME = time.time()
 
+disallowed_names = ["server", "solari"]
+
 host = SRV_CONFIG["host"]
 port = SRV_CONFIG["port"]
 
@@ -43,7 +45,14 @@ def filter_message(message):
 
 async def echo(websocket):
     username = await websocket.recv()
-    connected_clients.add((username, websocket)) # Client Connected
+    for client in connected_clients:
+        if username in client:
+            await websocket.send("username is taken")
+            return
+    if username in disallowed_names:
+        await websocket.send(f"username \"{username}\" is not allowed.")
+
+    connected_clients.add((username, websocket)) # Client Connect
 
     await websocket.send(json.dumps(server_info()))
     print("sent server info to new client")
@@ -66,23 +75,24 @@ async def echo(websocket):
                 message_data = json.loads(message)
                 username = message_data.get("username", "Unknown")
                 user_message = message_data.get("message", "")
-
-                print(f"Received: {message_data["message"].strip()} from {message_data["username"]}")
+                if message_data["type"] == "msg":
+                    print(f"Received: {message_data['message'].strip()} from {message_data['username']}")
+                elif message_data["type"] == "file":
+                    print(f"Received: {message_data['filename']} from message_data['username']")
                 if user_message.startswith("/"):
-                    if user_message.strip() == "/who":
+                    if user_message.strip() == "/who": # Command Definitions
                         online_users = [client[0] for client in connected_clients]
                         users = ", ".join(online_users)
-                        print(users)
                         data = {
                             "username": "server",
-                            "message": users,
+                            "message": f"There are {len(online_users)} online: " + users if len(online_users) > 1 else "You're all alone... :(",
                             "event": "srv_message"
                             }
                         await websocket.send(json.dumps(data))
                     elif user_message.strip() == "/srv.info":
                         data = {
                             "username": "server",
-                            "message": f"Server Version: {SRV_VERSION}, Uptime: {time.time() - SRV_STARTTIME}",
+                            "message": f"Server Name: {SRV_CONFIG['name']}\nServer Version: {SRV_VERSION}\nUptime: {time.time() - SRV_STARTTIME}",
                             "event": "srv_message"
                             }
                         await websocket.send(json.dumps(data))
@@ -94,20 +104,23 @@ async def echo(websocket):
                             }
                         await websocket.send(json.dumps(data))
                 else:
-                    for client in connected_clients:
+                    for client in connected_clients: # Send message to all clients
                         if client[1] != websocket:
-                            if SRV_CONFIG["blacklist"]:
-                                message_data["message"] = filter_message(message_data["message"])
-                            await client[1].send(json.dumps(message_data))
-                    print(f"Sent data to all: {message_data}")
+                            if message_data["type"] == "msg":
+                                if SRV_CONFIG["blacklist"]:
+                                    message_data["message"] = filter_message(message_data["message"])
+                                await client[1].send(json.dumps(message_data))
+                            elif message_data["type"] == "file":
+                                for client in connected_clients:
+                                    if client[1] != websocket:
+                                        await client[1].send(json.dumps(message_data))
+
             except json.JSONDecodeError:
                 print("Received invalid JSON data")
     except websockets.exceptions.ConnectionClosed:
         pass
-    finally:
+    finally: # Client Disconnect
         clienttoremove = (username, websocket)
-        print(clienttoremove)
-        print(connected_clients)
         if clienttoremove in connected_clients:
             connected_clients.remove(clienttoremove)
         print(f"Client {websocket.remote_address} disconnected")
