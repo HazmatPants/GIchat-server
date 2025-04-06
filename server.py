@@ -53,10 +53,14 @@ async def echo(websocket):
         if username in client:
             await websocket.send("username is taken")
             return
-    if username in disallowed_names:
+    if username.lower() in disallowed_names:
         await websocket.send(f"username \"{username}\" is not allowed.")
-
-    connected_clients.add((username, websocket)) # Client Connect
+        return
+    elif len(username) > 25:
+        await websocket.send(f"username is too long")
+        return
+    else:
+        connected_clients.add((username, websocket)) # Client Connect
 
     await websocket.send(json.dumps(server_info()))
     print("sent server info to new client")
@@ -127,15 +131,16 @@ async def echo(websocket):
                             print(f"message DB was cleared by {message_data['username']}")
                             save_message(message_data['username'], "cleared message DB")
                             data = {
+                                "type": "msg",
                                 "username": "server",
                                 "message": "RAW:CLRMSG",
                                 "event": "srv_command"
                                 }
                             for client in connected_clients:
-                                    if client[1] != websocket:
-                                        await client[1].send(json.dumps(data))
+                                    await client[1].send(json.dumps(data))
                     else:
                         data = {
+                            "type": "msg",
                             "username": "server",
                             "message": "You are not authorized to do that.",
                             "event": "srv_message"
