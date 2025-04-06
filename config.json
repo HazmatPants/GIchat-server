@@ -1,7 +1,7 @@
 {
-    "name": "GIchat Official",
+    "name": "GIchat Official 2",
     "host": "0.0.0.0",
     "port": 8765,
 
-    "blacklist": false
+    "blacklist": true
 }

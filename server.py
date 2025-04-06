@@ -76,9 +76,16 @@ async def echo(websocket):
                 username = message_data.get("username", "Unknown")
                 user_message = message_data.get("message", "")
                 if message_data["type"] == "msg":
-                    print(f"Received: {message_data['message'].strip()} from {message_data['username']}")
+                    if message_data["event"] == "request":
+                        if message_data["message"] == "RAW:USERLIST":
+                            online_users = [client[0] for client in connected_clients]
+                            print(f"Received user list request from {message_data['username']}")
+                            print(online_users)
+                            await websocket.send(json.dumps(online_users))
+                    else:
+                        print(f"Received: {message_data['message'].strip()} from {message_data['username']}")
                 elif message_data["type"] == "file":
-                    print(f"Received: {message_data['filename']} from message_data['username']")
+                    print(f"Received: {message_data['filename']} from {message_data['username']}")
                 if user_message.startswith("/"):
                     if user_message.strip() == "/who": # Command Definitions
                         online_users = [client[0] for client in connected_clients]
