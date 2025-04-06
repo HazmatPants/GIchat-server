@@ -2,6 +2,9 @@ import asyncio
 import websockets
 import time
 import json
+import os
+
+from db import create_db, save_message, get_all_messages
 
 try:
     SRV_CONFIG = json.loads(open("config.json", "r").read())
@@ -23,6 +26,7 @@ else:
 SRV_NAME = SRV_CONFIG["name"]
 SRV_VERSION = "1.4"
 SRV_STARTTIME = time.time()
+ADMINKEYS = SRV_CONFIG["admin_keys"]
 
 disallowed_names = ["server", "solari"]
 
@@ -80,14 +84,19 @@ async def echo(websocket):
                         if message_data["message"] == "RAW:USERLIST":
                             online_users = [client[0] for client in connected_clients]
                             print(f"Received user list request from {message_data['username']}")
-                            print(online_users)
                             await websocket.send(json.dumps(online_users))
+                        elif message_data["message"] == "RAW:MSGDB":
+                            all_messages = get_all_messages()
+                            print(f"Received message database request from {message_data['username']}")
+                            await websocket.send(json.dumps(all_messages))
+                            print("saved")
                     else:
                         print(f"Received: {message_data['message'].strip()} from {message_data['username']}")
+                        save_message(message_data["username"], message_data["message"])
                 elif message_data["type"] == "file":
                     print(f"Received: {message_data['filename']} from {message_data['username']}")
-                if user_message.startswith("/"):
-                    if user_message.strip() == "/who": # Command Definitions
+                if user_message.startswith("/"): # general commands
+                    if user_message.strip() == "/who":
                         online_users = [client[0] for client in connected_clients]
                         users = ", ".join(online_users)
                         data = {
@@ -96,7 +105,7 @@ async def echo(websocket):
                             "event": "srv_message"
                             }
                         await websocket.send(json.dumps(data))
-                    elif user_message.strip() == "/srv.info":
+                    elif user_message.strip() == "/server":
                         data = {
                             "username": "server",
                             "message": f"Server Name: {SRV_CONFIG['name']}\nServer Version: {SRV_VERSION}\nUptime: {time.time() - SRV_STARTTIME}",
@@ -107,6 +116,28 @@ async def echo(websocket):
                         data = {
                             "username": "server",
                             "message": "Unrecognized command.",
+                            "event": "srv_message"
+                            }
+                        await websocket.send(json.dumps(data))
+                elif user_message.startswith("!"): # admin commands
+                    if user_message.strip() == "!clear":
+                        if message_data['admin_key'] in ADMINKEYS:
+                            os.remove("messages.db")
+                            create_db()
+                            print(f"message DB was cleared by {message_data['username']}")
+                            save_message(message_data['username'], "cleared message DB")
+                            data = {
+                                "username": "server",
+                                "message": "RAW:CLRMSG",
+                                "event": "srv_command"
+                                }
+                            for client in connected_clients:
+                                    if client[1] != websocket:
+                                        await client[1].send(json.dumps(data))
+                    else:
+                        data = {
+                            "username": "server",
+                            "message": "You are not authorized to do that.",
                             "event": "srv_message"
                             }
                         await websocket.send(json.dumps(data))
@@ -141,9 +172,11 @@ async def echo(websocket):
                      await client[1].send(json.dumps(data))
 
 async def main():
+    create_db()
+    print("Initalized database")
     async with websockets.serve(echo, host, port):
         await asyncio.Future()  # Keeps the server running indefinitely
 
-print(f"Server running on {host}:{port}")
+print(f"server running on {host}:{port}")
 asyncio.run(main())
 

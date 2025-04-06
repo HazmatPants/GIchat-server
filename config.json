@@ -3,5 +3,10 @@
     "host": "0.0.0.0",
     "port": 8765,
 
-    "blacklist": false
+    "blacklist": false,
+    "save_messages": true,
+
+    "admin_keys": [
+		"HAZMATPANTS-91734820"
+    ]
 }
