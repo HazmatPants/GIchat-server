@@ -61,10 +61,6 @@ Modify `config.json` to change settings like the port and IP.
 
 [GPL-2.0](https://github.com/HazmatPants/GIchat-server/blob/main/LICENSE)
 
-# Notes
-
-- Ephemeral Messages: Messages are not saved, neither on the client nor the server.
-
 # Commands
 
 - /who -- Returns all connected clients' usernames.
