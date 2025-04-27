@@ -37,7 +37,7 @@ python3 server.py
 
 # Usage
 
-- Connect to the server using the [GI.*chat* client](https://github.com/HazmatPants/GIchat-client)
+- Connect to the server using the [GI.*chat* client](https://github.com/HazmatPants/GI.chat-client-2.0)
 - Default WebSocket URL: ws://localhost:8765
 - You can also connect to the official GI.*chat* server at `grigga-industries.ydns.eu`, port `8765`.
 
@@ -59,7 +59,7 @@ Modify `config.json` to change settings like the port and IP.
 
 # License
 
-[GPL-2.0](https://github.com/HazmatPants/GIchat-server/blob/main/LICENSE)
+[GPL-3.0](https://github.com/HazmatPants/GIchat-server/blob/main/LICENSE)
 
 # Commands
 
