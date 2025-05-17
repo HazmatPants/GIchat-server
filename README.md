@@ -37,9 +37,8 @@ python3 server.py
 
 # Usage
 
-- Connect to the server using the [GIchat client](https://github.com/HazmatPants/GI.chat-client-2.0)
-- Default WebSocket URL: ws://localhost:8765
-- You can also connect to the official GIchat server at `grigga-industries.ydns.eu`, port `8765`.
+- Connect to the server using [GIchat client 2.0](https://github.com/HazmatPants/GIchat-client-2.0) or [GIchat Client 1.0](https://github.com/HazmatPants/GI.chat-client-1.0) if PyQt is unavailable for you (1.0 may not work in the future when new features are added)
+- You can also connect to the official GIchat server at `grigga-industries.ydns.eu`, port `8765`. (may be down sometimes)
 
 # Configuration
 
