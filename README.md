@@ -1,6 +1,6 @@
-# GI.*chat*
+# GIchat
 
-GI.*chat* is a lightweight, easy to set up WebSocket-based chat server written in Python. It's designed for simplicity and efficiency, ideal for chatting with people on your local network, your friends, or anyone!
+GIchat is a lightweight, easy to set up WebSocket-based chat server written in Python. It's designed for simplicity and efficiency, ideal for chatting with people on your local network, your friends, or anyone!
 
 # Features
 
@@ -37,9 +37,9 @@ python3 server.py
 
 # Usage
 
-- Connect to the server using the [GI.*chat* client](https://github.com/HazmatPants/GI.chat-client-2.0)
+- Connect to the server using the [GIchat client](https://github.com/HazmatPants/GI.chat-client-2.0)
 - Default WebSocket URL: ws://localhost:8765
-- You can also connect to the official GI.*chat* server at `grigga-industries.ydns.eu`, port `8765`.
+- You can also connect to the official GIchat server at `grigga-industries.ydns.eu`, port `8765`.
 
 # Configuration
 
