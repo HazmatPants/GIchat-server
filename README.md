@@ -42,7 +42,7 @@ python3 server.py
 
 # Configuration
 
-Modify `config.json` to change settings like the port and IP.
+Modify `config.toml` to change settings like the port, IP, and username.
 
 # Contributing
 
@@ -68,3 +68,4 @@ Modify `config.json` to change settings like the port and IP.
 
 ## Admin Commands
 - !clear -- Clears the message database
+- ...more moderation commands will be added later
