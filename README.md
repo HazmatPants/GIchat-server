@@ -12,26 +12,26 @@ GIchat is a lightweight, easy to set up WebSocket-based chat server written in P
 
 1. Install Python:
 
-```sh
+```bash
 sudo apt install python3
 ```
 
 2. Clone the repository:
 
-```sh
+```bash
 git clone https://github.com/HazmatPants/GIchat-server.git
 cd GIchat-server
 ```
 
 3. Install dependencies:
 
-```sh
+```bash
 pip install -r requirements.txt
 ```
 
 4. Run the server:
 
-```sh
+```bash
 python3 server.py
 ```
 
@@ -46,15 +46,23 @@ Modify `config.toml` to change settings like the port, IP, and username.
 
 # Contributing
 
-1. Fork the repository
+1. Fork the repo
 
-2. Create a new branch (`git checkout -b <branch-name>`)
+2. Clone it to your local machine: `git clone https://github.com/YOUR_USERNAME/YOUR_FORK_NAME.git`
 
-3. Commit your changes (`git commit -m "Added feature X"`)
+3. Create a new branch: `git checkout -b <BRANCH_NAME>`
 
-4. Push to the branch (`git push origin <branch-name>`)
+4. Make your changes
 
-5. Open a pull request
+5. Commit your changes:
+```bash
+git add .
+git commit -m "Feature: added this super cool feature"
+```
+
+6. Push to your fork: `git push origin <BRANCH_NAME>`
+
+7. Create a pull request
 
 # License
 
@@ -63,9 +71,21 @@ Modify `config.toml` to change settings like the port, IP, and username.
 # Commands
 
 - /who -- Returns all connected clients' usernames.
-- /server -- Returns server information, such as the version and uptime.
+- /server -- Returns server information, such as the name, version, and uptime.
 - /whoami -- Returns your username
 
 ## Admin Commands
 - !clear -- Clears the message database
 - ...more moderation commands will be added later
+
+
+
+
+## To-do's
+- Use a better way of sending images instead of encoding to base64
+- Add GUI configuration
+- Add more admin commands (kick, ban, etc.)
+
+### Potential new features
+- Profile pictures
+- GUI user list
