@@ -42,7 +42,7 @@ python3 server.py
 
 # Configuration
 
-Modify `config.toml` to change settings like the port, IP, and username.
+Modify `config.json` to change settings like the port and server name.
 
 # Contributing
 
