@@ -1,3 +1,5 @@
+from flask import Flask, request, send_from_directory
+import threading
 import asyncio
 import websockets
 import time
@@ -93,10 +95,10 @@ async def echo(websocket):
                             all_messages = get_all_messages()
                             print(f"Received message database request from {message_data['username']}")
                             await websocket.send(json.dumps(all_messages))
-                            print("saved")
                     else:
-                        print(f"Received: {message_data['message'].strip()} from {message_data['username']}")
-                        save_message(message_data["username"], message_data["message"])
+                        print(f"<{message_data['username']}>\n{message_data['message'].strip()}")
+                        if not message_data["message"].startswith("/") or message_data["message"].startswith("!"):
+                            save_message(message_data["username"], message_data["message"])
                 elif message_data["type"] == "file":
                     print(f"Received: {message_data['filename']} from {message_data['username']}")
                 if user_message.startswith("/"): # general commands
@@ -133,19 +135,32 @@ async def echo(websocket):
                             data = {
                                 "type": "msg",
                                 "username": "server",
-                                "message": "RAW:CLRMSG",
+                                "message": "CLEAR_MESSAGE_DB",
                                 "event": "srv_command"
                                 }
                             for client in connected_clients:
                                     await client[1].send(json.dumps(data))
-                    else:
-                        data = {
-                            "type": "msg",
-                            "username": "server",
-                            "message": "You are not authorized to do that.",
-                            "event": "srv_message"
-                            }
-                        await websocket.send(json.dumps(data))
+                    elif user_message.strip().split(" ")[0] == "!kick":
+                        if user_message.strip().split(" ")[1] is not None:
+                            print(user_message.strip().split(" ")[1])
+                            user_to_kick = user_message.strip().split(" ")[1]
+                            data = {
+                                "type": "msg",
+                                "username": "server",
+                                "message": "KICK",
+                                "event": "srv_command"
+                                }
+                            for client in connected_clients:
+                                if client[0] == user_to_kick:
+                                    await client[1].send(json.dumps(data))
+                        else:
+                            data = {
+                                "type": "msg",
+                                "username": "server",
+                                "message": "You are not authorized to do that.",
+                                "event": "srv_message"
+                                }
+                            await websocket.send(json.dumps(data))
                 else:
                     for client in connected_clients: # Send message to all clients
                         if client[1] != websocket:
@@ -176,6 +191,32 @@ async def echo(websocket):
                 if client[1] != websocket:
                      await client[1].send(json.dumps(data))
 
+http_host = "0.0.0.0"
+http_port = 8000
+
+app = Flask(__name__)
+UPLOAD_DIR = "uploads"
+os.makedirs(UPLOAD_DIR, exist_ok=True)
+
+@app.route('/')
+def hello():
+    return "server is running"
+
+@app.route('/upload', methods=['POST'])
+def upload():
+    file = request.files['file']
+    file.save(os.path.join(UPLOAD_DIR, file.filename))
+    return {"status": "ok", "filename": file.filename}, 200
+
+@app.route('/uploads/<filename>', methods=['GET'])
+def get_file(filename):
+    return send_from_directory(UPLOAD_DIR, filename)
+
+def run_http_server():
+    app.run(host=http_host, port=http_port)
+
+threading.Thread(target=run_http_server, daemon=True).start()
+
 async def main():
     create_db()
     print("Initalized database")
@@ -184,4 +225,3 @@ async def main():
 
 print(f"server running on {host}:{port}")
 asyncio.run(main())
-
