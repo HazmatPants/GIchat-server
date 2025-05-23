@@ -38,7 +38,8 @@ python3 server.py
 
 # Usage
 
-- Connect to the server using [GIchat client 2.0](https://github.com/HazmatPants/GIchat-client-2.0) or [GIchat Client 1.0](https://github.com/HazmatPants/GI.chat-client-1.0) if PyQt is unavailable for you (image uploads WILL NOT WORK in client 1.0)
+- Connect to the server using [GIchat client 2.0](https://github.com/HazmatPants/GIchat-client-2.0) or [GIchat Client 1.0](https://github.com/HazmatPants/GI.chat-client-1.0) if PyQt is unavailable for you
+> image uploads WILL NOT WORK in client 1.0
 - You can also connect to the official GIchat server at `grigga-industries.ydns.eu`, port `8765`. (may be down sometimes)
 
 # Configuration
@@ -71,6 +72,8 @@ git commit -m "Feature: added this super cool feature"
 
 # Commands
 
+## General Commands
+
 - /who -- Returns all connected clients' usernames.
 - /server -- Returns server information, such as the name, version, and uptime.
 - /whoami -- Returns your username
@@ -84,9 +87,10 @@ git commit -m "Feature: added this super cool feature"
 
 
 
-## To-do's
-- Add GUI configuration
+# To-do's
+- Add GUI config editor
 
-### Potential new features
+## Potential new features
 - Profile pictures
 - GUI user list
+- GIF playback
