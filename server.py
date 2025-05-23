@@ -2,17 +2,26 @@ from flask import Flask, request, send_from_directory
 import threading
 import asyncio
 import websockets
+import uuid
 import time
 import json
 import os
+import re
 
-from db import create_db, save_message, get_all_messages
+from db import (create_db,
+                save_message,
+                get_all_messages,
+                delete_last_message,
+                extract_referenced_images,
+                cleanup_orphaned_images,
+                clear_images)
+from werkzeug.exceptions import RequestEntityTooLarge
 
 try:
     SRV_CONFIG = json.loads(open("config.json", "r").read())
     print("loaded config")
-except json.JSONDecodeError:
-    print("Config is not valid JSON, please check for any mistakes in config.json")
+except json.JSONDecodeError as e:
+    print(f"Config is not valid JSON, please check for any mistakes in config.json: {e}")
     exit()
 
 def load_blacklist(file_path):
@@ -26,7 +35,7 @@ else:
     print("blacklist is disabled")
 
 SRV_NAME = SRV_CONFIG["name"]
-SRV_VERSION = "1.4"
+SRV_VERSION = "1.5"
 SRV_STARTTIME = time.time()
 ADMINKEYS = SRV_CONFIG["admin_keys"]
 
@@ -77,7 +86,7 @@ async def echo(websocket):
             json_data = json.dumps(data)
             await client[1].send(json_data)
 
-    print(f"Client connected from {websocket.remote_address}")
+    print(f"Client connected from {websocket.remote_address} ({username})")
 
     try:
         async for message in websocket:
@@ -97,7 +106,7 @@ async def echo(websocket):
                             await websocket.send(json.dumps(all_messages))
                     else:
                         print(f"<{message_data['username']}>\n{message_data['message'].strip()}")
-                        if not message_data["message"].startswith("/") or message_data["message"].startswith("!"):
+                        if not message_data["message"].startswith("/") or not message_data["message"].startswith("!"):
                             save_message(message_data["username"], message_data["message"])
                 elif message_data["type"] == "file":
                     print(f"Received: {message_data['filename']} from {message_data['username']}")
@@ -126,41 +135,60 @@ async def echo(websocket):
                             }
                         await websocket.send(json.dumps(data))
                 elif user_message.startswith("!"): # admin commands
-                    if user_message.strip() == "!clear":
-                        if message_data['admin_key'] in ADMINKEYS:
-                            os.remove("messages.db")
-                            create_db()
-                            print(f"message DB was cleared by {message_data['username']}")
-                            save_message(message_data['username'], "cleared message DB")
+                    if message_data['admin_key'] in ADMINKEYS:
+                        if user_message.strip() == "!clear":
+                                clear_images(UPLOAD_DIR)
+                                os.remove("messages.db")
+                                create_db()
+                                print(f"message DB was cleared by {message_data['username']}")
+                                save_message(message_data['username'], "cleared message DB")
+                                data = {
+                                    "type": "msg",
+                                    "username": "server",
+                                    "message": "CLEAR_MESSAGE_DB",
+                                    "event": "srv_command"
+                                    }
+                                for client in connected_clients:
+                                        await client[1].send(json.dumps(data))
+                        elif user_message.strip().split(" ")[0] == "!kick":
+                            if user_message.strip().split(" ")[1] is not None:
+                                print(user_message.strip().split(" ")[1])
+                                user_to_kick = user_message.strip().split(" ")[1]
+                                data = {
+                                    "type": "msg",
+                                    "username": "server",
+                                    "message": "KICK",
+                                    "event": "srv_command"
+                                    }
+                                for client in connected_clients:
+                                    if client[0] == user_to_kick:
+                                        await client[1].send(json.dumps(data))
+                                    else:
+                                        data = {
+                                            "username": "server",
+                                            "message": user_to_kick + " was kicked",
+                                            "event": "srv_message"
+                                            }
+                                        json_data = json.dumps(data)
+                                        await client[1].send(json_data)
+                        elif user_message.strip().split(" ")[0] == "!cleanup":
+                            referenced = extract_referenced_images()
+                            deleted = cleanup_orphaned_images(UPLOAD_DIR, referenced)
                             data = {
                                 "type": "msg",
                                 "username": "server",
-                                "message": "CLEAR_MESSAGE_DB",
-                                "event": "srv_command"
-                                }
-                            for client in connected_clients:
-                                    await client[1].send(json.dumps(data))
-                    elif user_message.strip().split(" ")[0] == "!kick":
-                        if user_message.strip().split(" ")[1] is not None:
-                            print(user_message.strip().split(" ")[1])
-                            user_to_kick = user_message.strip().split(" ")[1]
-                            data = {
-                                "type": "msg",
-                                "username": "server",
-                                "message": "KICK",
-                                "event": "srv_command"
-                                }
-                            for client in connected_clients:
-                                if client[0] == user_to_kick:
-                                    await client[1].send(json.dumps(data))
-                        else:
-                            data = {
-                                "type": "msg",
-                                "username": "server",
-                                "message": "You are not authorized to do that.",
+                                "message": f"Deleted {len(deleted)} unreferenced images.",
                                 "event": "srv_message"
                                 }
                             await websocket.send(json.dumps(data))
+                    else:
+                        data = {
+                            "type": "msg",
+                            "username": "server",
+                            "message": "You are not authorized to do that.",
+                            "event": "srv_message"
+                            }
+                        await websocket.send(json.dumps(data))
                 else:
                     for client in connected_clients: # Send message to all clients
                         if client[1] != websocket:
@@ -191,8 +219,8 @@ async def echo(websocket):
                 if client[1] != websocket:
                      await client[1].send(json.dumps(data))
 
-http_host = "0.0.0.0"
-http_port = 8000
+http_host = SRV_CONFIG["http_host"]
+http_port = SRV_CONFIG["http_port"]
 
 app = Flask(__name__)
 UPLOAD_DIR = "uploads"
@@ -205,8 +233,10 @@ def hello():
 @app.route('/upload', methods=['POST'])
 def upload():
     file = request.files['file']
-    file.save(os.path.join(UPLOAD_DIR, file.filename))
-    return {"status": "ok", "filename": file.filename}, 200
+    ext = os.path.splitext(file.filename)[1]  # preserve .png, .jpg etc.
+    unique_filename = f"{uuid.uuid4().hex}{ext}"
+    file.save(os.path.join(UPLOAD_DIR, unique_filename))
+    return {"status": "ok", "filename": unique_filename}, 200
 
 @app.route('/uploads/<filename>', methods=['GET'])
 def get_file(filename):
@@ -214,6 +244,12 @@ def get_file(filename):
 
 def run_http_server():
     app.run(host=http_host, port=http_port)
+
+app.config['MAX_CONTENT_LENGTH'] = SRV_CONFIG["max_upload_size"]
+
+@app.errorhandler(RequestEntityTooLarge)
+def handle_file_too_large(e):
+    return f'File is too large. Max size is {SRV_CONFIG["max_upload_size"] / 1024 / 1024} MB', 413
 
 threading.Thread(target=run_http_server, daemon=True).start()
 
@@ -223,5 +259,6 @@ async def main():
     async with websockets.serve(echo, host, port):
         await asyncio.Future()  # Keeps the server running indefinitely
 
+print(f"HTTP server running on {http_host}:{http_port}")
 print(f"server running on {host}:{port}")
 asyncio.run(main())

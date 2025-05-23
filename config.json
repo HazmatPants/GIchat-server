@@ -1,10 +1,13 @@
 {
-    "name": "GIchat Server",
+    "name": "GIchat Official",
     "host": "0.0.0.0",
     "port": 8765,
+    "http_host": "0.0.0.0",
+    "http_port": 8000,
 
     "blacklist": false,
     "save_messages": true,
+    "max_upload_size": 52428800,
 
     "admin_keys": [
 		"HAZMATPANTS-91734820"
