@@ -7,6 +7,7 @@ GIchat is a lightweight, easy to set up WebSocket-based chat server written in P
 - WebSocket-based for real-time communication
 - Lightweight and fast with minimal dependencies
 - Easy setup, install and run with just a few commands
+- Image uploads via HTTP
 
 # Installation
 
@@ -75,16 +76,16 @@ git commit -m "Feature: added this super cool feature"
 - /whoami -- Returns your username
 
 ## Admin Commands
+> to setup admin users, add any string of text to the `admin_keys` key in `config.json` then if any client has their admin key in that list, they can execute admin commands.
 - !clear -- Clears the message database
-- ...more moderation commands will be added later
+- !cleanup -- Deletes images that aren't referenced in the database
+- !kick <user> -- Disconnects a user
 
 
 
 
 ## To-do's
-- Use a better way of sending images instead of encoding to base64
 - Add GUI configuration
-- Add more admin commands (kick, ban, etc.)
 
 ### Potential new features
 - Profile pictures
