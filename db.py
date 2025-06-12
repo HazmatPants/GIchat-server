@@ -64,8 +64,6 @@ def clear_images(upload_dir):
     for file in os.listdir(upload_dir):
         os.remove(os.path.join(upload_dir, file))
 
-import sqlite3
-
 def delete_last_message_by_username(username):
     db_path = "messages.db"
     conn = sqlite3.connect(db_path)
