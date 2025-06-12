@@ -1,5 +1,5 @@
 {
-    "name": "GIchat Official",
+    "name": "GIchat Server",
     "host": "0.0.0.0",
     "port": 8765,
     "http_host": "0.0.0.0",
@@ -10,6 +10,6 @@
     "max_upload_size": 52428800,
 
     "admin_keys": [
-		"HAZMATPANTS-91734820"
+		"I_Am_An_Admin!"
     ]
 }
